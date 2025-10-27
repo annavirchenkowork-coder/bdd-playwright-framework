@@ -9,7 +9,8 @@ import { productInfo } from "../../utilities/qa-data-reader.js";
 When(
   "User enters valid information in all required and optional fields",
   async function () {
-    
+    const user = generateTestUser();
+    await startApplicationPage.fillPersonalInformation(user);
   }
 );
 
@@ -19,7 +20,13 @@ When(
 When(
   "User enters valid information in only the required fields",
   async function () {
-    
+    await startApplicationPage.fillPersonalInformation({
+      firstName: productInfo.firstName,
+      lastName: productInfo.lastName,
+      email: productInfo.email,
+      phone: productInfo.phone,
+      // optional fields intentionally omitted
+    });
   }
 );
 
