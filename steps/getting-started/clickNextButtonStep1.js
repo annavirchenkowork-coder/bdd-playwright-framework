@@ -34,12 +34,12 @@ When("User clicks the Next button on Step 1", async function () {
 // Step 4: Validate Stepper Indicators
 // ------------------------
 Then(
-  "Step 1 stepper indicator should display as completed \\(green\\)",
+  "Step 1 stepper indicator should display as completed green",
   async function () {
    
   }
 );
 
-Then("Step 2 stepper indicator should be active \\(blue\\)", async function () {
-    
+Then("Step 2 stepper indicator should be active blue", async function () {
+
 });

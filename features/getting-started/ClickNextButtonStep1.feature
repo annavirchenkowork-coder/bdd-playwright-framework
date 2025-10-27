@@ -17,12 +17,12 @@ Feature: Proceed to Step 2 after completing Step 1
     Scenario: Proceed to Step 2 with all fields completed
         When User enters valid information in all required and optional fields
         And User clicks the Next button on Step 1
-        Then Step 1 stepper indicator should display as completed (green)
-        And Step 2 stepper indicator should be active (blue)
+        Then Step 1 stepper indicator should display as completed green
+        And Step 2 stepper indicator should be active blue
 
     @sep19-2
     Scenario: Proceed to Step 2 with only required fields completed
         When User enters valid information in only the required fields
         And User clicks the Next button on Step 1
-        Then Step 1 stepper indicator should display as completed (green)
-        And Step 2 stepper indicator should be active (blue)
+        Then Step 1 stepper indicator should display as completed green
+        And Step 2 stepper indicator should be active blue
