@@ -9,7 +9,7 @@ import {
 } from "../globalPagesSetup.js";
 
 
-Given("user is on the enrollment page", async function () {
+Given("User is on the enrollment page", async function () {
   await startApplicationPage.login();
 });
 
