@@ -1,5 +1,6 @@
-// Import the required 'fs' module to read the file
-import { readFileSync } from 'fs';
+import { readFileSync } from "fs";
+import path from "path";
+import { faker } from "@faker-js/faker";
 
 /**
  * @typedef {Object} PriceData
@@ -24,7 +25,7 @@ class Price {
     upfrontDiscountAmount,
     allowCoupons,
     couponDiscount,
-    numberOfInstallments
+    numberOfInstallments,
   }) {
     this.active = active;
     this.baseAmount = baseAmount;
@@ -73,7 +74,7 @@ class Product {
     refundDate,
     externalUrl,
     terms,
-    prices
+    prices,
   }) {
     this.available = available;
     this.productName = productName;
@@ -87,15 +88,22 @@ class Product {
     this.refundDate = refundDate;
     this.externalUrl = externalUrl;
     this.terms = terms;
-    this.prices = prices.map(price => new Price(price));
+    this.prices = prices.map((price) => new Price(price));
   }
 }
 
-// Instantiate the Product object
-export const productInfo = new Product(JSON.parse(readFileSync('./data/qa_data.json', 'utf8')));
+// --- Load Program Data from JSON ---
+const dataPath = path.resolve("data/qa_data.json");
+const rawData = readFileSync(dataPath, "utf-8");
+export const qaData = JSON.parse(rawData);
 
-
-
-
-
-
+// --- Generate User Test Data Dynamically ---
+export function generateTestUser() {
+  return {
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email({ provider: "example.com" }),
+    phone: faker.phone.number("##########"),
+    howDidYouHear: "LinkedIn",
+  };
+}
