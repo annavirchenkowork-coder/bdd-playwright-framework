@@ -103,7 +103,7 @@ export function generateTestUser() {
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     email: faker.internet.email({ provider: "example.com" }),
-    phone: faker.phone.number("##########"),
+    phone: faker.string.numeric(10),
     howDidYouHear: "LinkedIn",
   };
 }

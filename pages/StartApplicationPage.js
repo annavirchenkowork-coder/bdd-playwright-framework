@@ -124,8 +124,6 @@ export class StartApplicationPage extends BasePage {
     this.discountedPrice = page.locator("//b[@class='info-primary']");
 
     this.originalPrice = page.locator("//s[contains(.,'$')]");
-
-    
   }
 
   /**
@@ -186,5 +184,12 @@ export class StartApplicationPage extends BasePage {
 
   async clickNextButton() {
     await this.nextButton.click();
+  }
+  async fillPersonalInformation(d = {}) {
+    if (d.firstName) await this.firstNameInputBox.fill(d.firstName);
+    if (d.lastName) await this.lastNameInputBox.fill(d.lastName);
+    if (d.email) await this.emailInputBox.fill(d.email);
+    if (d.phone) await this.phoneNumberInputBox.fill(d.phone);
+    if (d.howDidYouHear) await this.selectHowDidYouHearAboutUs(d.howDidYouHear);
   }
 }
