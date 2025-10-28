@@ -46,7 +46,7 @@ Then(
   async function () {
     await expect(startApplicationPage.startApplicationStepCircle).toHaveCSS(
       "background-color",
-      "rgb(172, 245, 138)" // ✅ if this is the exact color
+      "rgb(172, 245, 138)"
     );
   }
 );
@@ -54,6 +54,6 @@ Then(
 Then("Step 2 stepper indicator should be active blue", async function () {
   await expect(startApplicationPage.paymentPlanStepCircle).toHaveCSS(
     "background-color",
-    "rgb(63, 131, 248)" // ✅ put the actual blue value from UI inspector
+    "rgb(1, 201, 255)"
   );
 });

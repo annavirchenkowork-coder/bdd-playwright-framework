@@ -107,3 +107,11 @@ export function generateTestUser() {
     howDidYouHear: "LinkedIn",
   };
 }
+
+export const productInfo = {
+  firstName: "Anna",
+  lastName: "Virchenko",
+  email: "anna.virchenko@example.com",
+  phone: "5551234567",
+  howDidYouHear: "LinkedIn",
+};
