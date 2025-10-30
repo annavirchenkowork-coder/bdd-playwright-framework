@@ -15,9 +15,10 @@ export class StartApplicationPage extends BasePage {
 
     this.reviewText = page.locator("(//div[@class = 'step-title'])[3]");
 
-    this.startApplicationStepCircle = page.locator(".step-circle:nth-of-type(1)");
-    this.paymentPlanStepCircle = page.locator(".step-circle:nth-of-type(2)");
-    this.reviewStepCircle = page.locator(".step-circle:nth-of-type(3)");
+    const circles = page.locator(".step-circle");
+    this.startApplicationStepCircle = circles.nth(0);
+    this.paymentPlanStepCircle = circles.nth(1);
+    this.reviewStepCircle = circles.nth(2);
 
     this.firstNameInputBox = page.locator(
       "//input[@formcontrolname='firstName']"
