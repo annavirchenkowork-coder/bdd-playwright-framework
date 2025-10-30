@@ -3,11 +3,18 @@ import { expect } from "@playwright/test";
 import { startApplicationPage } from "../../globalPagesSetup.js";
 import { qaData } from "../../utilities/qa-data-reader.js";
 
+// Small helper to pull a numeric value from a $-formatted string like "$400"
+function moneyToNumber(text) {
+  const n = Number(String(text).replace(/[^\d.]/g, ""));
+  if (Number.isNaN(n)) throw new Error(`Cannot parse money from: ${text}`);
+  return n;
+}
+
 // AC1
 Then(
   "The product name should be visible on the information card",
   async function () {
-   
+   await expect(startApplicationPage.programNameOnInfoCard).toBeVisible();
   }
 );
 
@@ -15,7 +22,9 @@ Then(
 Then(
   "The product name on the left header should match the information card title",
   async function () {
-    
+     await expect(startApplicationPage.programNameOnInfoCard).toHaveText(
+       new RegExp(`^\\s*${qaData.productName}\\s*$`, "i")
+     );
   }
 );
 
