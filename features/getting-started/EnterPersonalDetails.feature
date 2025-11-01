@@ -25,7 +25,8 @@ Feature: Enter my Personal details
     Scenario Outline: Email format validation blocks invalid values
         When I type "<email>" into the Email Address field
         Then The Email Address field validity should be <valid>
-        And The Next button should remain disabled
+        And The form should be invalid
+        And Clicking Next should keep me on Step 1
 
         Examples:
             | email         | valid |
@@ -38,7 +39,8 @@ Feature: Enter my Personal details
     Scenario Outline: Phone field only allows numeric input
         When I type "<value>" into the Phone field
         Then The Phone field validity should be <valid>
-        And The Next button should remain disabled
+        And The form should be invalid
+        And Clicking Next should keep me on Step 1
 
         Examples:
             | value      | valid |
@@ -65,4 +67,5 @@ Feature: Enter my Personal details
         And I enter a valid Email Address
         And I enter a valid Phone
         And I select "LinkedIn" in the "How did you hear about us?" dropdown
-        Then The Next button should be enabled
+        Then The form should be valid
+        And Clicking Next should take me to Step 2
