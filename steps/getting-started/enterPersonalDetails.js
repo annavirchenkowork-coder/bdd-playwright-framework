@@ -61,16 +61,40 @@ Then("The Next button should remain disabled", async function () {
 });
 
 /* ========== AC1d: Phone numeric only (Scenario Outline) ========== */
-When('I type "{word}" into the Phone field', async function (value) {});
+When('I type "{word}" into the Phone field', async function (value) {
+  await typeInto(startApplicationPage.phoneNumberInputBox, value);
+});
 
-Then("The Phone field validity should be {word}", async function (valid) {});
+Then("The Phone field validity should be {word}", async function (valid) {
+   const actual = await isValidControl(
+     startApplicationPage.phoneNumberInputBox
+   );
+   expect(actual).toBe(valid === "true");
+});
 
 /* ========== AC2: Dropdown exists with standard options ========== */
-Then("The {string} dropdown should be present", async function (string) {});
+Then("The {string} dropdown should be present", async function (string) {
+  await expect(startApplicationPage.howDidYouHearAboutUsDropDown).toBeVisible();
+});
 
 Then(
   "The dropdown should contain at least the options:",
-  async function (dataTable) {}
+  async function (dataTable) {
+    await startApplicationPage.howDidYouHearAboutUsDropDown.click();
+    // collect all option texts
+    const optionTexts = await this.page
+      .locator("mat-option span")
+      .allTextContents();
+    const want = dataTable
+      .raw()
+      .flat()
+      .map((s) => s.trim());
+    for (const item of want) {
+      expect(optionTexts.map((t) => t.trim().toLowerCase())).toContain(
+        item.toLowerCase()
+      );
+    }
+  }
 );
 
 /* ========== AC3: Next disabled until all required data is valid; then enabled ========== */
