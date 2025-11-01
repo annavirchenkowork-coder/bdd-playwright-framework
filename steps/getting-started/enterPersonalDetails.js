@@ -66,10 +66,8 @@ When('I type "{word}" into the Phone field', async function (value) {
 });
 
 Then("The Phone field validity should be {word}", async function (valid) {
-   const actual = await isValidControl(
-     startApplicationPage.phoneNumberInputBox
-   );
-   expect(actual).toBe(valid === "true");
+  const actual = await isValidControl(startApplicationPage.phoneNumberInputBox);
+  expect(actual).toBe(valid === "true");
 });
 
 /* ========== AC2: Dropdown exists with standard options ========== */
@@ -98,19 +96,34 @@ Then(
 );
 
 /* ========== AC3: Next disabled until all required data is valid; then enabled ========== */
-Then("The Next button should be disabled", async function () {});
+Then("The Next button should be disabled", async function () {
+  await expect(startApplicationPage.nextButton).toBeDisabled();
+});
 
-When("I enter a valid First Name and Last Name", async function () {});
+When("I enter a valid First Name and Last Name", async function () {
+  await startApplicationPage.firstNameInputBox.fill("Anna");
+  await startApplicationPage.lastNameInputBox.fill("Virchenko");
+});
 
-When("I enter a valid Email Address", async function () {});
+When("I enter a valid Email Address", async function () {
+  await startApplicationPage.emailInputBox.fill("anna.virchenko@example.com");
+});
 
-When("I enter a valid Phone", async function () {});
+When("I enter a valid Phone", async function () {
+  await startApplicationPage.phoneNumberInputBox.fill("2025550188");
+});
 
- When(
-   "I select {string} in the {string} dropdown",
-   async function (string, string2) {
-     
-   }
- );
+When(
+  "I select {string} in the {string} dropdown",
+  async function (option, dropdownLabel) {
+    if (dropdownLabel.includes("How did you hear about us")) {
+      await startApplicationPage.selectHowDidYouHearAboutUs(option);
+    } else {
+      throw new Error(`Unknown dropdown: ${dropdownLabel}`);
+    }
+  }
+);
 
-Then("The Next button should be enabled", async function () {});
+Then("The Next button should be enabled", async function () {
+  await expect(startApplicationPage.nextButton).toBeEnabled();
+});
