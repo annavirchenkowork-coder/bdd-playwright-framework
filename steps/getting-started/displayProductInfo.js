@@ -14,7 +14,7 @@ function moneyToNumber(text) {
 Then(
   "The product name should be visible on the information card",
   async function () {
-   await expect(startApplicationPage.programNameOnInfoCard).toBeVisible();
+    await expect(startApplicationPage.programNameOnInfoCard).toBeVisible();
   }
 );
 
@@ -22,48 +22,47 @@ Then(
 Then(
   "The product name on the left header should match the information card title",
   async function () {
-     await expect(startApplicationPage.programNameOnInfoCard).toHaveText(
-       new RegExp(`^\\s*${qaData.productName}\\s*$`, "i")
-     );
+    await expect(startApplicationPage.programNameOnInfoCard).toHaveText(
+      new RegExp(`^\\s*${qaData.productName}\\s*$`, "i")
+    );
   }
 );
 
 // AC3
 Then("The discounted price should be shown", async function () {
-=  await expect(startApplicationPage.discountedPrice).toBeVisible();
+  await expect(startApplicationPage.discountedPrice).toBeVisible();
 });
 
 Then(
   "The original price should be shown with strikethrough",
   async function () {
-     const tag = await startApplicationPage.originalPrice.evaluate(
-       (el) => el.tagName
-     );
-     expect(tag).toBe("S");
+    const tag = await startApplicationPage.originalPrice.evaluate(
+      (el) => el.tagName
+    );
+    expect(tag).toBe("S");
   }
 );
 
 Then(
   "The discounted price should equal the original price minus the upfront discount",
   async function () {
-     const oneTime = qaData.prices.find(
-       (p) => p.active && p.type === "one-time"
-     );
-     const expectedOriginal = oneTime.baseAmount;
-     const expectedDiscounted = oneTime.upfrontDiscount
-       ? oneTime.baseAmount - oneTime.upfrontDiscountAmount
-       : oneTime.baseAmount;
+    const oneTime = qaData.prices.find(
+      (p) => p.active && p.type === "one-time"
+    );
+    const expectedOriginal = oneTime.baseAmount;
+    const expectedDiscounted = oneTime.upfrontDiscount
+      ? oneTime.baseAmount - oneTime.upfrontDiscountAmount
+      : oneTime.baseAmount;
 
-     const originalText =
-       await startApplicationPage.originalPrice.textContent();
-     const discountedText =
-       await startApplicationPage.discountedPrice.textContent();
+    const originalText = await startApplicationPage.originalPrice.textContent();
+    const discountedText =
+      await startApplicationPage.discountedPrice.textContent();
 
-     const original = moneyToNumber(originalText);
-     const discounted = moneyToNumber(discountedText);
+    const original = moneyToNumber(originalText);
+    const discounted = moneyToNumber(discountedText);
 
-     expect(original).toBe(expectedOriginal);
-     expect(discounted).toBe(expectedDiscounted);
+    expect(original).toBe(expectedOriginal);
+    expect(discounted).toBe(expectedDiscounted);
   }
 );
 
@@ -71,12 +70,12 @@ Then(
 Then(
   "The flexible payments plan availability text should be visible",
   async function () {
-   await expect(
-     startApplicationPage.flexiblePaymentsPlanAvailableText
-   ).toBeVisible();
-   await expect(
-     startApplicationPage.flexiblePaymentsPlanAvailableText
-   ).toHaveText(/flexible payments plan available/i);
+    await expect(
+      startApplicationPage.flexiblePaymentsPlanAvailableText
+    ).toBeVisible();
+    await expect(
+      startApplicationPage.flexiblePaymentsPlanAvailableText
+    ).toHaveText(/flexible payments plan available/i);
   }
 );
 
@@ -95,18 +94,18 @@ Then(
 
 // AC6
 Then("The refund policy text should be visible", async function () {
-    await expect(startApplicationPage.refundEndDate).toBeVisible();
+  await expect(startApplicationPage.refundEndDate).toBeVisible();
 });
 
 Then(
   "The refund end date should be visible and match test data",
   async function () {
-     const refundEscaped = qaData.refundDate.replace(
-       /[.*+?^${}()|[\]\\]/g,
-       "\\$&"
-     );
-     await expect(startApplicationPage.refundEndDate).toHaveText(
-       new RegExp(refundEscaped, "i")
-     );
+    const refundEscaped = qaData.refundDate.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
+    await expect(startApplicationPage.refundEndDate).toHaveText(
+      new RegExp(refundEscaped, "i")
+    );
   }
 );

@@ -48,7 +48,7 @@ Feature: Enter my Personal details
 
     @sep10-4
     Scenario: “How did you hear about us?” dropdown is present with standard options
-        Then The "How did you hear about us?" dropdown should be present
+        The "How did you hear about us?" dropdown should be present
         And The dropdown should contain at least the options:
             | Email     |
             | Facebook  |
@@ -64,5 +64,5 @@ Feature: Enter my Personal details
         When I enter a valid First Name and Last Name
         And I enter a valid Email Address
         And I enter a valid Phone
-        And I select "LinkedIn" in the "How did you hear about us?" dropdown
+        I select "LinkedIn" in the "How did you hear about us?" dropdown
         Then The Next button should be enabled
