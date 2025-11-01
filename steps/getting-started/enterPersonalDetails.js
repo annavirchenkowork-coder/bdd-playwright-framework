@@ -44,14 +44,21 @@ Then("The Phone field should be present and required", async function () {
 });
 
 /* ========== AC1c: Email format validity (Scenario Outline) ========== */
-When('I type "{word}" into the Email Address field', async function (value) {});
+When('I type "{word}" into the Email Address field', async function (value) {
+  await typeInto(startApplicationPage.emailInputBox, value);
+});
 
 Then(
   "The Email Address field validity should be {word}",
-  async function (valid) {}
+  async function (valid) {
+    const actual = await isValidControl(startApplicationPage.emailInputBox);
+    expect(actual).toBe(valid === "true");
+  }
 );
 
-Then("The Next button should remain disabled", async function () {});
+Then("The Next button should remain disabled", async function () {
+  await expect(startApplicationPage.nextButton).toBeDisabled();
+});
 
 /* ========== AC1d: Phone numeric only (Scenario Outline) ========== */
 When('I type "{word}" into the Phone field', async function (value) {});
@@ -59,9 +66,7 @@ When('I type "{word}" into the Phone field', async function (value) {});
 Then("The Phone field validity should be {word}", async function (valid) {});
 
 /* ========== AC2: Dropdown exists with standard options ========== */
- Then("The {string} dropdown should be present", async function (string) {
-   
- });
+Then("The {string} dropdown should be present", async function (string) {});
 
 Then(
   "The dropdown should contain at least the options:",
@@ -77,9 +82,11 @@ When("I enter a valid Email Address", async function () {});
 
 When("I enter a valid Phone", async function () {});
 
-When(
-  'I select {string1} in the {string2} dropdown',
-  async function (string1, string2) {}
-);
+ When(
+   "I select {string} in the {string} dropdown",
+   async function (string, string2) {
+     
+   }
+ );
 
 Then("The Next button should be enabled", async function () {});
