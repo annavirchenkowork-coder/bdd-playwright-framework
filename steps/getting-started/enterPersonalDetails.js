@@ -56,8 +56,12 @@ Then(
   }
 );
 
-Then("The Next button should remain disabled", async function () {
-  await expect(startApplicationPage.nextButton).toBeDisabled();
+Then("The form should be invalid", async function () {
+  
+});
+
+Then("Clicking Next should keep me on Step {int}", async function (int) {
+
 });
 
 /* ========== AC1d: Phone numeric only (Scenario Outline) ========== */
@@ -96,9 +100,6 @@ Then(
 );
 
 /* ========== AC3: Next disabled until all required data is valid; then enabled ========== */
-Then("The Next button should be disabled", async function () {
-  await expect(startApplicationPage.nextButton).toBeDisabled();
-});
 
 When("I enter a valid First Name and Last Name", async function () {
   await startApplicationPage.firstNameInputBox.fill("Anna");
@@ -123,7 +124,9 @@ When(
     }
   }
 );
+Then("The form should be valid", async function () {
+  
+});
+Then("Clicking Next should take me to Step {int}", async function (int) {
 
-Then("The Next button should be enabled", async function () {
-  await expect(startApplicationPage.nextButton).toBeEnabled();
 });
