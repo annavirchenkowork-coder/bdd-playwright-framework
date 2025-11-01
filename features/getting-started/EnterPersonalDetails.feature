@@ -62,7 +62,7 @@ Feature: Enter my Personal details
 
     @sep10-5
     Scenario: Next button stays disabled until all required data is valid
-        Then The Next button should be disabled
+        Then The form should be invalid
         When I enter a valid First Name and Last Name
         And I enter a valid Email Address
         And I enter a valid Phone
