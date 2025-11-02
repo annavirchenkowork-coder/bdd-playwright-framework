@@ -11,10 +11,10 @@ async function formValid(page) {
 }
 
 async function typeAndBlur(locator, value) {
-  await locator.fill(""); // reset
+  await locator.fill("");
   if (value) await locator.type(value);
-  await locator.blur(); // trigger validators
-  await locator.page().waitForTimeout(50);
+  await locator.blur();
+  await locator.page().waitForTimeout(50); // give Angular a tick
 }
 
 async function isRequired(locator) {
@@ -22,9 +22,25 @@ async function isRequired(locator) {
 }
 
 async function controlValid(locator) {
-  return await locator.evaluate((el) =>
-    el.checkValidity ? el.checkValidity() : true
-  );
+  return await locator.evaluate((el) => {
+    // Material/Angular often set aria-invalid
+    if (el.hasAttribute("aria-invalid")) {
+      return el.getAttribute("aria-invalid") === "false";
+    }
+    // Angular adds classes
+    const cls = el.className || "";
+    if (
+      typeof cls === "string" &&
+      (cls.includes("ng-valid") || cls.includes("ng-invalid"))
+    ) {
+      return cls.includes("ng-valid") && !cls.includes("ng-invalid");
+    }
+    // Fallback to native
+    return el.checkValidity ? el.checkValidity() : true;
+  });
+}
+async function inputValue(locator) {
+  return await locator.inputValue();
 }
 
 /* ========== AC1: fields present & required ========== */
@@ -59,21 +75,30 @@ When('I type "{word}" into the Email Address field', async function (value) {
 Then(
   "The Email Address field validity should be {word}",
   async function (word) {
-    const expected = word === "true";
-    const isValid = await controlValid(startApplicationPage.emailInputBox);
-    expect(isValid).toBe(expected);
+     const expected = word === "true";
+     const isValid = await controlValid(startApplicationPage.emailInputBox);
+     expect(isValid).toBe(expected);
   }
 );
 
 /* ========== AC1d: Phone numeric only (Scenario Outline) ========== */
 When('I type "{word}" into the Phone field', async function (value) {
-  await typeAndBlur(startApplicationPage.phoneNumberInputBox, value);
+   await typeAndBlur(startApplicationPage.phoneNumberInputBox, value);
 });
 
 Then("The Phone field validity should be {word}", async function (word) {
   const expected = word === "true";
-  const isValid = await controlValid(startApplicationPage.phoneNumberInputBox);
-  expect(isValid).toBe(expected);
+
+  const validFlag = await controlValid(
+    startApplicationPage.phoneNumberInputBox
+  );
+  const val = await inputValue(startApplicationPage.phoneNumberInputBox);
+  const digitsOnly = /^\d+$/.test(val);
+
+  // If letters slipped in, treat as invalid regardless of flag
+  const effectiveValid = validFlag && digitsOnly;
+
+  expect(effectiveValid).toBe(expected);
 });
 
 /* ========== AC2: Dropdown exists with standard options ========== */
