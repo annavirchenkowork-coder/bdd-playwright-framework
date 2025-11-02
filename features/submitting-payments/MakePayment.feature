@@ -10,6 +10,7 @@ Feature: Make a payment
     #* AC3: The correct program name should be displayed.
     #* AC4: The correct user email should be displayed.
     #* AC5: The correct company contact information should be displayed.
+    #* AC6: By default, the pay button should be displayed.
 
 
     #TODO: Create scenarios that cover all the acceptance criteria
