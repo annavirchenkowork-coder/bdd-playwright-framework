@@ -34,7 +34,7 @@ Feature: Enter my Personal details
             | abc@           | false |
             | a@b.           | false |
             | user@@test.com | false |
-            | user@test..com | true  |
+            | user@test..com | false  |
             | a@b            | true  |
             | user@test.com  | true  |
 

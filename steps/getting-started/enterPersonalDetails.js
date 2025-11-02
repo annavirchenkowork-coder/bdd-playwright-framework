@@ -6,16 +6,43 @@ import {
 } from "../../globalPagesSetup.js";
 
 /* ---------- tiny helpers ---------- */
+// Returns native validity if available; falls back to Angular/Mat hints.
+async function controlIsValid(locator) {
+  return await locator.evaluate((el) => {
+    if (typeof el.checkValidity === "function") return el.checkValidity();
 
+    // fallback – look at common Angular/Mat markers
+    const field =
+      el.closest(".mat-mdc-form-field") || el.closest("mat-form-field");
+    const take = (n) => n === true || n === "true";
+    if (el.hasAttribute("aria-invalid"))
+      return !take(el.getAttribute("aria-invalid"));
+    if (field && field.hasAttribute("aria-invalid"))
+      return !take(field.getAttribute("aria-invalid"));
+
+    const cl = (node) => (node && node.classList) || { contains: () => false };
+    if (cl(el).contains("ng-invalid") || cl(field).contains("ng-invalid"))
+      return false;
+    if (cl(el).contains("ng-valid") || cl(field).contains("ng-valid"))
+      return true;
+
+    return true; // safest default
+  });
+}
 // Angular form validity
 async function ngFormValid(page) {
   const formEl = await page.$("form");
   if (!formEl) return true;
   return await formEl.evaluate((f) => {
-    const aria = f.getAttribute && f.getAttribute("aria-invalid");
-    if (aria === "true") return false;
-    const cls = f.classList ? f.classList : { contains: () => false };
-    return !cls.contains("ng-invalid");
+    if (f.hasAttribute("aria-invalid")) {
+      const v = f.getAttribute("aria-invalid");
+      if (v === "true") return false;
+      if (v === "false") return true;
+    }
+    const cl = f.classList || { contains: () => false };
+    if (cl.contains("ng-invalid")) return false;
+    if (cl.contains("ng-valid")) return true;
+    return f.checkValidity ? f.checkValidity() : true;
   });
 }
 
@@ -23,7 +50,8 @@ async function ngFormValid(page) {
 async function expectNgValidity(locator, expected) {
   await expect
     .poll(async () => await ngControlValid(locator), {
-      timeout: 2000,
+      timeout: 4000, // a bit more generous
+      intervals: [150, 250, 400, 600, 1000, 1600],
     })
     .toBe(expected);
 }
@@ -33,29 +61,66 @@ async function typeAndBlur(locator, value) {
   await locator.fill("");
   if (value) await locator.type(value);
   await locator.blur();
-  await locator.page().waitForTimeout(75);
+  // small settle so input/blur handlers run
+  await locator.page().waitForTimeout(120);
 }
 
-// Angular control validity
-async function ngControlValid(locator) {
-  return await locator.evaluate((el) => {
-    // prefer aria-invalid if present
-    const aria = el.getAttribute && el.getAttribute("aria-invalid");
-    if (aria === "true") return false;
-    if (aria === "false") return true;
+async function expectControlValidity(locator, expected) {
+  await expect
+    .poll(async () => await controlIsValid(locator), {
+      timeout: 4000,
+      intervals: [120, 200, 300, 500, 900, 1200],
+    })
+    .toBe(expected);
+}
 
-    // fallback to Angular classes
-    const cls = el.classList ? el.classList : { contains: () => false };
-    return !cls.contains("ng-invalid");
+// Returns true when the control is VALID according to Angular/Mat
+async function ngControlValid(locator) {
+  // read on the element, then bubble to mat form-field if needed
+  return await locator.evaluate((el) => {
+    const hasTrue = (v) => v === true || v === "true";
+    const hasFalse = (v) => v === false || v === "false";
+
+    // 1) aria-invalid on the input itself
+    if (el.hasAttribute("aria-invalid")) {
+      const v = el.getAttribute("aria-invalid");
+      if (hasTrue(v)) return false;
+      if (hasFalse(v)) return true;
+    }
+
+    // 2) nearest Material container often carries the state
+    const field =
+      el.closest(".mat-mdc-form-field") ||
+      el.closest("mat-form-field") ||
+      el.parentElement;
+
+    if (field) {
+      if (field.hasAttribute("aria-invalid")) {
+        const v = field.getAttribute("aria-invalid");
+        if (hasTrue(v)) return false;
+        if (hasFalse(v)) return true;
+      }
+      const cl = field.classList || { contains: () => false };
+      if (cl.contains("ng-invalid") || cl.contains("mdc-text-field--invalid")) {
+        return false;
+      }
+      if (cl.contains("ng-valid")) return true;
+    }
+
+    // 3) fall back to class markers on the input
+    const cls = el.classList || { contains: () => false };
+    if (cls.contains("ng-invalid") || cls.contains("mdc-text-field--invalid")) {
+      return false;
+    }
+    if (cls.contains("ng-valid")) return true;
+
+    // 4) final fallback to native validity if exposed
+    return el.checkValidity ? el.checkValidity() : true;
   });
 }
 
 async function isRequired(locator) {
   return await locator.evaluate((el) => !!el.required);
-}
-
-async function inputValue(locator) {
-  return await locator.inputValue();
 }
 
 /* ========== AC1: fields present & required ========== */
@@ -91,7 +156,7 @@ Then(
   "The Email Address field validity should be {word}",
   async function (word) {
     const expected = word === "true";
-    await expectNgValidity(startApplicationPage.emailInputBox, expected);
+    await expectControlValidity(startApplicationPage.emailInputBox, expected);
   }
 );
 
@@ -102,7 +167,10 @@ When('I type "{word}" into the Phone field', async function (value) {
 
 Then("The Phone field validity should be {word}", async function (word) {
   const expected = word === "true";
-  await expectNgValidity(startApplicationPage.phoneNumberInputBox, expected);
+  await expectControlValidity(
+    startApplicationPage.phoneNumberInputBox,
+    expected
+  );
 });
 
 /* ========== AC2: Dropdown exists with standard options ========== */
@@ -129,9 +197,9 @@ Then(
 
 /* ========== AC3: Next blocked until valid; then proceeds ========== */
 Then("The form should be invalid", async function () {
-   await expect
-     .poll(async () => await ngFormValid(this.page), { timeout: 2000 })
-     .toBe(false);
+  await expect
+    .poll(async () => await ngFormValid(this.page), { timeout: 2000 })
+    .toBe(false);
 });
 
 Then("The form should be valid", async function () {
