@@ -69,21 +69,47 @@ Then("The Phone field should be present and required", async function () {
 
 /* ========== AC1c: Email format validity (Scenario Outline) ========== */
 When('I type "{word}" into the Email Address field', async function (value) {
-  await typeAndBlur(startApplicationPage.emailInputBox, value);
+  await startApplicationPage.emailInputBox.fill("");
+  await startApplicationPage.emailInputBox.type(value);
+  // blur to trigger Angular validation
+  await startApplicationPage.emailInputBox.blur();
+  // tiny pause for change detection
+  await this.page.waitForTimeout(50);
 });
 
 Then(
   "The Email Address field validity should be {word}",
   async function (word) {
-     const expected = word === "true";
-     const isValid = await controlValid(startApplicationPage.emailInputBox);
-     expect(isValid).toBe(expected);
+    const expected = word === "true";
+
+    // Prefer Angular/Material signal
+    const aria = await startApplicationPage.emailInputBox.getAttribute(
+      "aria-invalid"
+    );
+    let isValid;
+    if (aria !== null) {
+      isValid = aria === "false";
+    } else {
+      // Fallback to native validity/classes
+      isValid = await startApplicationPage.emailInputBox.evaluate((el) => {
+        const cls = el.className || "";
+        if (
+          typeof cls === "string" &&
+          (cls.includes("ng-valid") || cls.includes("ng-invalid"))
+        ) {
+          return cls.includes("ng-valid") && !cls.includes("ng-invalid");
+        }
+        return el.checkValidity ? el.checkValidity() : true;
+      });
+    }
+
+    expect(isValid).toBe(expected);
   }
 );
 
 /* ========== AC1d: Phone numeric only (Scenario Outline) ========== */
 When('I type "{word}" into the Phone field', async function (value) {
-   await typeAndBlur(startApplicationPage.phoneNumberInputBox, value);
+  await typeAndBlur(startApplicationPage.phoneNumberInputBox, value);
 });
 
 Then("The Phone field validity should be {word}", async function (word) {
@@ -194,6 +220,5 @@ Then(
 
     // now Step 2 is visible; Step 1 control can be hidden (or not focused)
     await expect(paymentPlanPage.chooseAPaymentPlanText).toBeVisible();
-
   }
 );

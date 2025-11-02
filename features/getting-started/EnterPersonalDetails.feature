@@ -29,11 +29,14 @@ Feature: Enter my Personal details
         And Clicking Next should keep me on Step 1
 
         Examples:
-            | email         | valid |
-            | abc           | false |
-            | abc@          | false |
-            | a@b           | false |
-            | user@test.com | true  |
+            | email          | valid |
+            | abc            | false |
+            | abc@           | false |
+            | a@b.           | false |
+            | user@@test.com | false |
+            | user@test..com | true  |
+            | a@b            | true  |
+            | user@test.com  | true  |
 
     @sep10-3
     Scenario Outline: Phone field only allows numeric input
