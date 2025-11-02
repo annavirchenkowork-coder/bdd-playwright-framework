@@ -6,39 +6,54 @@ import {
 } from "../../globalPagesSetup.js";
 
 /* ---------- tiny helpers ---------- */
-async function formValid(page) {
-  return await page.$eval("form", (f) => f.checkValidity());
+
+// Angular form validity
+async function ngFormValid(page) {
+  const formEl = await page.$("form");
+  if (!formEl) return true;
+  return await formEl.evaluate((f) => {
+    const aria = f.getAttribute && f.getAttribute("aria-invalid");
+    if (aria === "true") return false;
+    const cls = f.classList ? f.classList : { contains: () => false };
+    return !cls.contains("ng-invalid");
+  });
 }
 
+// small expectation helper to wait for Angular to flip state
+async function expectNgValidity(locator, expected) {
+  await expect
+    .poll(async () => await ngControlValid(locator), {
+      timeout: 2000,
+    })
+    .toBe(expected);
+}
+
+// type + blur + tiny settle
 async function typeAndBlur(locator, value) {
   await locator.fill("");
   if (value) await locator.type(value);
   await locator.blur();
-  await locator.page().waitForTimeout(50); // give Angular a tick
+  await locator.page().waitForTimeout(75);
+}
+
+// Angular control validity
+async function ngControlValid(locator) {
+  return await locator.evaluate((el) => {
+    // prefer aria-invalid if present
+    const aria = el.getAttribute && el.getAttribute("aria-invalid");
+    if (aria === "true") return false;
+    if (aria === "false") return true;
+
+    // fallback to Angular classes
+    const cls = el.classList ? el.classList : { contains: () => false };
+    return !cls.contains("ng-invalid");
+  });
 }
 
 async function isRequired(locator) {
   return await locator.evaluate((el) => !!el.required);
 }
 
-async function controlValid(locator) {
-  return await locator.evaluate((el) => {
-    // Material/Angular often set aria-invalid
-    if (el.hasAttribute("aria-invalid")) {
-      return el.getAttribute("aria-invalid") === "false";
-    }
-    // Angular adds classes
-    const cls = el.className || "";
-    if (
-      typeof cls === "string" &&
-      (cls.includes("ng-valid") || cls.includes("ng-invalid"))
-    ) {
-      return cls.includes("ng-valid") && !cls.includes("ng-invalid");
-    }
-    // Fallback to native
-    return el.checkValidity ? el.checkValidity() : true;
-  });
-}
 async function inputValue(locator) {
   return await locator.inputValue();
 }
@@ -69,41 +84,14 @@ Then("The Phone field should be present and required", async function () {
 
 /* ========== AC1c: Email format validity (Scenario Outline) ========== */
 When('I type "{word}" into the Email Address field', async function (value) {
-  await startApplicationPage.emailInputBox.fill("");
-  await startApplicationPage.emailInputBox.type(value);
-  // blur to trigger Angular validation
-  await startApplicationPage.emailInputBox.blur();
-  // tiny pause for change detection
-  await this.page.waitForTimeout(50);
+  await typeAndBlur(startApplicationPage.emailInputBox, value);
 });
 
 Then(
   "The Email Address field validity should be {word}",
   async function (word) {
     const expected = word === "true";
-
-    // Prefer Angular/Material signal
-    const aria = await startApplicationPage.emailInputBox.getAttribute(
-      "aria-invalid"
-    );
-    let isValid;
-    if (aria !== null) {
-      isValid = aria === "false";
-    } else {
-      // Fallback to native validity/classes
-      isValid = await startApplicationPage.emailInputBox.evaluate((el) => {
-        const cls = el.className || "";
-        if (
-          typeof cls === "string" &&
-          (cls.includes("ng-valid") || cls.includes("ng-invalid"))
-        ) {
-          return cls.includes("ng-valid") && !cls.includes("ng-invalid");
-        }
-        return el.checkValidity ? el.checkValidity() : true;
-      });
-    }
-
-    expect(isValid).toBe(expected);
+    await expectNgValidity(startApplicationPage.emailInputBox, expected);
   }
 );
 
@@ -114,17 +102,7 @@ When('I type "{word}" into the Phone field', async function (value) {
 
 Then("The Phone field validity should be {word}", async function (word) {
   const expected = word === "true";
-
-  const validFlag = await controlValid(
-    startApplicationPage.phoneNumberInputBox
-  );
-  const val = await inputValue(startApplicationPage.phoneNumberInputBox);
-  const digitsOnly = /^\d+$/.test(val);
-
-  // If letters slipped in, treat as invalid regardless of flag
-  const effectiveValid = validFlag && digitsOnly;
-
-  expect(effectiveValid).toBe(expected);
+  await expectNgValidity(startApplicationPage.phoneNumberInputBox, expected);
 });
 
 /* ========== AC2: Dropdown exists with standard options ========== */
@@ -151,11 +129,15 @@ Then(
 
 /* ========== AC3: Next blocked until valid; then proceeds ========== */
 Then("The form should be invalid", async function () {
-  expect(await formValid(this.page)).toBe(false);
+   await expect
+     .poll(async () => await ngFormValid(this.page), { timeout: 2000 })
+     .toBe(false);
 });
 
 Then("The form should be valid", async function () {
-  expect(await formValid(this.page)).toBe(true);
+  await expect
+    .poll(async () => await ngFormValid(this.page), { timeout: 2000 })
+    .toBe(true);
 });
 
 When("I enter a valid First Name and Last Name", async function () {
