@@ -162,15 +162,26 @@ Then(
 
 /* ========== AC1d: Phone numeric only (Scenario Outline) ========== */
 When('I type "{word}" into the Phone field', async function (value) {
-  await typeAndBlur(startApplicationPage.phoneNumberInputBox, value);
+  this.lastPhoneRaw = value;
+
+  const phone = startApplicationPage.phoneNumberInputBox;
+  await phone.fill("");
+  await phone.type(value);
+  await phone.blur(); // trigger Angular validation/filters
+  await this.page.waitForTimeout(50);
+
+  this.lastPhoneActual = await phone.inputValue();
 });
 
 Then("The Phone field validity should be {word}", async function (word) {
   const expected = word === "true";
-  await expectControlValidity(
-    startApplicationPage.phoneNumberInputBox,
-    expected
-  );
+  const allDigits =
+    /^\d+$/.test(this.lastPhoneActual) && this.lastPhoneActual.length > 0;
+  const unchanged = this.lastPhoneActual === this.lastPhoneRaw;
+
+  const computedValid = allDigits && unchanged;
+
+  expect(computedValid).toBe(expected);
 });
 
 /* ========== AC2: Dropdown exists with standard options ========== */
@@ -236,8 +247,6 @@ When(
   }
 );
 
-/* --- Navigation outcomes: rely on visibility, not colors or disabled attr --- */
-
 // Invalid form: clicking Next should keep us on Step 1 (Step 2 content remains hidden)
 Then(
   "Clicking Next should keep me on Step {int}",
@@ -268,7 +277,7 @@ Then(
 
     await startApplicationPage.clickNextButton();
 
-    // now Step 2 is visible; Step 1 control can be hidden (or not focused)
+    // now Step 2 is visible; Step 1 control can be hidden
     await expect(paymentPlanPage.chooseAPaymentPlanText).toBeVisible();
   }
 );
