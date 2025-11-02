@@ -29,7 +29,8 @@ async function controlIsValid(locator) {
     return true; // safest default
   });
 }
-// Angular form validity
+
+// Angular form validity (form-level)
 async function ngFormValid(page) {
   const formEl = await page.$("form");
   if (!formEl) return true;
@@ -46,25 +47,15 @@ async function ngFormValid(page) {
   });
 }
 
-// small expectation helper to wait for Angular to flip state
-async function expectNgValidity(locator, expected) {
-  await expect
-    .poll(async () => await ngControlValid(locator), {
-      timeout: 4000, // a bit more generous
-      intervals: [150, 250, 400, 600, 1000, 1600],
-    })
-    .toBe(expected);
-}
-
-// type + blur + tiny settle
+// type + blur + tiny settle to allow validators to fire
 async function typeAndBlur(locator, value) {
   await locator.fill("");
   if (value) await locator.type(value);
   await locator.blur();
-  // small settle so input/blur handlers run
   await locator.page().waitForTimeout(120);
 }
 
+// poll-based assertion for validity flipping
 async function expectControlValidity(locator, expected) {
   await expect
     .poll(async () => await controlIsValid(locator), {
@@ -72,51 +63,6 @@ async function expectControlValidity(locator, expected) {
       intervals: [120, 200, 300, 500, 900, 1200],
     })
     .toBe(expected);
-}
-
-// Returns true when the control is VALID according to Angular/Mat
-async function ngControlValid(locator) {
-  // read on the element, then bubble to mat form-field if needed
-  return await locator.evaluate((el) => {
-    const hasTrue = (v) => v === true || v === "true";
-    const hasFalse = (v) => v === false || v === "false";
-
-    // 1) aria-invalid on the input itself
-    if (el.hasAttribute("aria-invalid")) {
-      const v = el.getAttribute("aria-invalid");
-      if (hasTrue(v)) return false;
-      if (hasFalse(v)) return true;
-    }
-
-    // 2) nearest Material container often carries the state
-    const field =
-      el.closest(".mat-mdc-form-field") ||
-      el.closest("mat-form-field") ||
-      el.parentElement;
-
-    if (field) {
-      if (field.hasAttribute("aria-invalid")) {
-        const v = field.getAttribute("aria-invalid");
-        if (hasTrue(v)) return false;
-        if (hasFalse(v)) return true;
-      }
-      const cl = field.classList || { contains: () => false };
-      if (cl.contains("ng-invalid") || cl.contains("mdc-text-field--invalid")) {
-        return false;
-      }
-      if (cl.contains("ng-valid")) return true;
-    }
-
-    // 3) fall back to class markers on the input
-    const cls = el.classList || { contains: () => false };
-    if (cls.contains("ng-invalid") || cls.contains("mdc-text-field--invalid")) {
-      return false;
-    }
-    if (cls.contains("ng-valid")) return true;
-
-    // 4) final fallback to native validity if exposed
-    return el.checkValidity ? el.checkValidity() : true;
-  });
 }
 
 async function isRequired(locator) {
@@ -179,6 +125,7 @@ Then("The Phone field validity should be {word}", async function (word) {
     /^\d+$/.test(this.lastPhoneActual) && this.lastPhoneActual.length > 0;
   const unchanged = this.lastPhoneActual === this.lastPhoneRaw;
 
+  // computed validity = only digits AND nothing stripped
   const computedValid = allDigits && unchanged;
 
   expect(computedValid).toBe(expected);
