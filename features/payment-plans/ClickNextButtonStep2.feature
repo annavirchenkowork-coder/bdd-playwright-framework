@@ -9,7 +9,6 @@ Feature: Click on the next button on payment plans page   #! Test Only
     #* AC4: The payment component should be displayed.
     #* AC5: A price summary should be displayed.
     #* AC6: The back button should be displayed.
-    #* AC7: By default, the pay button should be displayed.
 
 
     #TODO: Create scenarios that cover all the acceptance criteria
