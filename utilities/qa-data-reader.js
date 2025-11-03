@@ -114,4 +114,6 @@ export const productInfo = {
   email: "anna.virchenko@example.com",
   phone: "5551234567",
   howDidYouHear: "LinkedIn",
+  startDate: qaData.startDate,
+  refundDate: qaData.refundDate,
 };
