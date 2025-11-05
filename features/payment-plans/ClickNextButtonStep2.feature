@@ -16,34 +16,34 @@ Feature: Click on the Next button on the Payment Plans page
 
     Background:
         Given User is on the enrollment page
-        And user completed the start application step
+        And User completed the start application step
 
     @sep16-1
     Scenario: Next button activates after selecting a plan
-        Then the next button on step two should be disabled by default
-        When user selects upfront payment plan
-        Then the next button on step two should be enabled
+        Then The next button on step two should be disabled by default
+        When User selects upfront payment plan
+        Then The next button on step two should be enabled
 
     @sep16-2
     Scenario: Stepper colors update when proceeding to Step 3
-        Then step one stepper should be green
-        And step two stepper should be blue
-        When user selects upfront payment plan
-        And user clicks the next button on payment plan page
-        Then step one stepper should be green
-        And step two stepper should be green
-        And step three stepper should be blue
+        Then Step one stepper should be green
+        And Step two stepper should be blue
+        When User selects upfront payment plan
+        And User clicks the next button on payment plan page
+        Then Step one stepper should be green
+        And Step two stepper should be green
+        And Step three stepper should be blue
 
     @sep16-3
     Scenario: Price summary is shown for each plan selection
-        When user selects upfront payment plan
-        Then the upfront payment summary should be displayed
-        When user selects installments payment plan
-        Then the installment payment summary should be displayed
+        When User selects upfront payment plan
+        Then The upfront payment summary should be displayed
+        When User selects installments payment plan
+        Then The installment payment summary should be displayed
 
     @sep16-4
     Scenario: Back button is present and navigates back to Step 1
-        Then the back button is displayed on the payment plan page
-        And the back button is enabled on the payment plan page
-        When user clicks the back button on payment plan page
-        Then step one stepper should be blue
+        Then The back button is displayed on the payment plan page
+        And The back button is enabled on the payment plan page
+        When User clicks the back button on payment plan page
+        Then Step one stepper should be blue
