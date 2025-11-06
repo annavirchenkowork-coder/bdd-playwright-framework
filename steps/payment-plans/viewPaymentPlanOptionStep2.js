@@ -3,14 +3,12 @@ import { expect } from "@playwright/test";
 import { paymentPlanPage } from "../../globalPagesSetup.js";
 
 /* small helper: normalize plan label */
-function norm(plan) {
-  const p = plan.toLowerCase();
-  return p.includes("install") ? "installments" : "upfront";
-}
+const normPlan = (s) =>
+  s.toLowerCase().includes("install") ? "installments" : "upfront";
 
 /* ----- panel visible ----- */
 Then("The {string} plan panel should be visible", async function (plan) {
-  switch (norm(plan)) {
+  switch (normPlan(plan)) {
     case "upfront":
       await expect(paymentPlanPage.upfrontPaymentFrame).toBeVisible();
       break;
@@ -22,9 +20,9 @@ Then("The {string} plan panel should be visible", async function (plan) {
 
 /* ----- first row text (title line) ----- */
 Then(
-  'The first row of the {string} plan should display {string}',
+  "The first row of the {string} plan should display {string}",
   async function (plan, expected) {
-    switch (norm(plan)) {
+    switch (normPlan(plan)) {
       case "upfront": {
         const txt = (
           await paymentPlanPage.upfrontPaymentOption.innerText()
@@ -45,9 +43,9 @@ Then(
 
 /* ----- second row text (price line) ----- */
 Then(
-  'The second row of the {string} plan should display {string}',
+  "The second row of the {string} plan should display {string}",
   async function (plan, expected) {
-    switch (norm(plan)) {
+    switch (normPlan(plan)) {
       case "upfront": {
         // discount-price node renders: "$400 pay once"
         const txt = (
@@ -70,16 +68,32 @@ Then(
 
 /* ----- exact count of plan options (should be 1 each) ----- */
 Then(
-  'There should be exactly {int} {string} plan option',
+  "There should be exactly {int} {string} plan option",
   async function (count, plan) {
-    
+    const which = normPlan(plan);
+    const actual =
+      which === "upfront"
+        ? await paymentPlanPage.upfrontPaymentOption.count()
+        : await paymentPlanPage.installmentsPaymentOption.count();
+    expect(actual).toBe(count);
   }
 );
 
 /* ----- coupons badge visible on each plan ----- */
 Then(
-  'The {string} plan should show a {string} control',
+  "The {string} plan should show a {string} control",
   async function (plan, controlText) {
-    
+    const which = normPlan(plan);
+    const panel =
+      which === "upfront"
+        ? paymentPlanPage.upfrontPaymentFrame
+        : paymentPlanPage.installmentsPaymentFrame;
+
+    // scope inside the specific plan panel to avoid strict-mode conflicts
+    const chip = panel.locator(".coupon-badge");
+
+    await expect(chip).toHaveCount(1);
+    await expect(chip.first()).toBeVisible();
+    await expect(chip.first()).toHaveText(new RegExp(controlText, "i"));
   }
 );
