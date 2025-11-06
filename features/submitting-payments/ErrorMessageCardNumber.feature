@@ -8,10 +8,7 @@ Feature: Error message for the invalid card number
     #   - "Your card number is invalid."
 
     Background:
-        Given User is on the enrollment page
-        And User completed the start application step
-        And User selects upfront payment plan
-        And User clicks the next button on payment plan page
+        Given User proceeds to the Review Payment page
 
     @sep25-1
     Scenario: Incomplete card number shows an error
