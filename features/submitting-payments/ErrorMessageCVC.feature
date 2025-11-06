@@ -17,4 +17,4 @@ Feature: Error message for the invalid CVC number
         When User types "12" into the Security Code field
         And User checks the Terms and Conditions checkbox
         Then The Security Code field error should be visible
-        And The Security Code field error should contain "Your card's security code is incomplete."
+        And The Security Code field error should contain "Your card’s security code is incomplete."
