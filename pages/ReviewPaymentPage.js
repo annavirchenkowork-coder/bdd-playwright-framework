@@ -9,20 +9,30 @@ export class ReviewPaymentPage extends BasePage {
 
     this.paymentForm = page.locator("//form[@id='payment-form']");
 
-    this.paymentFrame = page.frameLocator("(//iframe[contains(@title, 'Secure payment')])[1]");
+    this.paymentFrame = page.frameLocator(
+      "(//iframe[contains(@title, 'Secure payment')])[1]"
+    );
 
-    this.cardNumberInput = this.paymentFrame.locator("(//input[@type='text'])[1]");
-    
-    this.expiryDateInput = this.paymentFrame.locator("(//input[@type='text'])[2]");
-    
+    this.cardNumberInput = this.paymentFrame.locator(
+      "(//input[@type='text'])[1]"
+    );
+
+    this.expiryDateInput = this.paymentFrame.locator(
+      "(//input[@type='text'])[2]"
+    );
+
     this.cvcInput = this.paymentFrame.locator("(//input[@type='text'])[3]");
-    
-    this.countryDropDown = this.paymentFrame.locator("//select[@name = 'country']");
-    
+
+    this.countryDropDown = this.paymentFrame.locator(
+      "//select[@name = 'country']"
+    );
+
     this.zipCodeInput = this.paymentFrame.locator("(//input[@type='text'])[4]");
-    
-    this.byProvidingCardInformationText = page.locator("//p[contains(., 'By providing your card information')]");
-    
+
+    this.byProvidingCardInformationText = page.locator(
+      "//p[contains(., 'By providing your card information')]"
+    );
+
     this.productPriceText = page.locator(
       "//div[@class='content-panel-item ng-star-inserted']/span[contains(text(), 'Product Price')]"
     );
@@ -89,8 +99,21 @@ export class ReviewPaymentPage extends BasePage {
     this.termsAgreementTextPop = page.locator(
       "//h1[@id='mat-mdc-dialog-title-0']"
     );
+    this.confirmationBox = page.locator(
+      "//div[contains(., 'Payments confirmation')][contains(@class,'ng-star-inserted')]"
+    );
+    // Stepper states on Review page
+    this.step1Container = page.locator(
+      "//div[contains(concat(' ', normalize-space(@class), ' '), ' step ')][.//div[contains(@class,'step-circle')]/span[normalize-space()='1']]"
+    );
 
-    
+    this.step2Container = page.locator(
+      "//div[contains(concat(' ', normalize-space(@class), ' '), ' step ')][.//div[contains(@class,'step-circle')]/span[normalize-space()='2']]"
+    );
+
+    this.step3Container = page.locator(
+      "//div[contains(concat(' ', normalize-space(@class), ' '), ' step ')][.//div[contains(@class,'step-circle')]/span[normalize-space()='3']]"
+    );
   }
 
   /**
@@ -132,5 +155,4 @@ export class ReviewPaymentPage extends BasePage {
   async clickPayButton() {
     await this.payButton.click();
   }
-
 }

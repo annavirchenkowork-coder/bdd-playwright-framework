@@ -22,11 +22,9 @@ When("User enters a valid Security Code", async function () {
   await reviewPaymentPage.enterCVC(process.env.CARD_SECURITY_CODE || "123");
 });
 
-
 When("User enters a valid ZIP code", async function () {
   await reviewPaymentPage.enterZipCode(process.env.ZIP_CODE || "12345");
 });
-
 
 When("User clicks the Pay button", async function () {
   await reviewPaymentPage.clickPayButton();
@@ -35,9 +33,15 @@ When("User clicks the Pay button", async function () {
 });
 
 /* ---- Assertions for success state ---- */
-Then(
-  "The payment confirmation message should be displayed",
-  async function () {}
-);
+Then("The payment confirmation message should be displayed", async function () {
+  await expect(reviewPaymentPage.confirmationBox).toBeVisible();
+});
 
-Then("The stepper should show all steps completed", async function () {});
+Then("The stepper should show all steps completed", async function () {
+  // Steps 1 and 2 should be marked done
+  await expect(reviewPaymentPage.step1Container).toHaveClass(/done/);
+  await expect(reviewPaymentPage.step2Container).toHaveClass(/done/);
+
+  // Step 3 is the active/completed step, marked as "editing" in this UI
+  await expect(reviewPaymentPage.step3Container).toHaveClass(/editing|done/);
+});
