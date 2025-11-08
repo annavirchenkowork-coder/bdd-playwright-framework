@@ -9,6 +9,18 @@ export class BrowserUtility {
     }
     return ctx._leftMain;
   }
+  /**
+   * Cleans text content by trimming and collapsing whitespace.
+   * @param {import('playwright').Locator} locator - Locator whose text to clean
+   * @returns {Promise<string>} - Cleaned text content
+   */
+  static async cleanText(locator) {
+    const raw = (await locator.textContent()) ?? "";
+    return raw
+      .replace(/\u00A0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
 
   /** Checks a checkbox and verifies it is checked. */
   static async check(locator) {
