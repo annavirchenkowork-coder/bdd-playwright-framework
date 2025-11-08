@@ -22,6 +22,21 @@ export class BrowserUtility {
       .trim();
   }
 
+  /**
+   * Converts a formatted money string like "$400" or "$1,200.50"
+   * into a numeric value.
+   *
+   * @param {string} text
+   * @returns {number}
+   */
+  static moneyToNumber(text) {
+    const n = Number(String(text).replace(/[^\d.]/g, ""));
+    if (Number.isNaN(n)) {
+      throw new Error(`Cannot parse money from: ${text}`);
+    }
+    return n;
+  }
+
   /** Checks a checkbox and verifies it is checked. */
   static async check(locator) {
     await locator.check();
