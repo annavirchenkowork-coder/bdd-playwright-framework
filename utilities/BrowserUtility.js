@@ -129,6 +129,31 @@ export class BrowserUtility {
     return await locator.evaluate((el) => !!el.required);
   }
 
+  /**
+   * Returns header and summary locators for a payment plan name.
+   * Handles "upfront" and "installments" cases.
+   *
+   * @param {string} name - The plan name (case-insensitive)
+   * @param {object} paymentPlanPage - The payment plan page instance
+   * @returns {{header: import('playwright').Locator, summaryProbe: import('playwright').Locator}}
+   */
+  static panelFor(name, paymentPlanPage) {
+    const k = name.toLowerCase();
+    if (k.includes("upfront")) {
+      return {
+        header: paymentPlanPage.upfrontPaymentFrame,
+        summaryProbe: paymentPlanPage.basePriceAmountUnderUpfront,
+      };
+    }
+    if (k.includes("installments")) {
+      return {
+        header: paymentPlanPage.installmentsPaymentFrame,
+        summaryProbe: paymentPlanPage.basePriceAmountUnderInstallments,
+      };
+    }
+    throw new Error(`Unknown plan: ${name}`);
+  }
+
   /** Checks a checkbox and verifies it is checked. */
   static async check(locator) {
     await locator.check();
