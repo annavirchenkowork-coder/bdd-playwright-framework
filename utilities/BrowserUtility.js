@@ -1,6 +1,15 @@
 import { expect } from "@playwright/test";
+import { LeftMainPage } from "../pages/LeftMainPage.js";
 
 export class BrowserUtility {
+  /** Return one LeftMainPage per scenario (per World)*/
+  static getLeftMain(ctx) {
+    if (!ctx._leftMain) {
+      ctx._leftMain = new LeftMainPage(ctx.page);
+    }
+    return ctx._leftMain;
+  }
+
   /** Checks a checkbox and verifies it is checked. */
   static async check(locator) {
     await locator.check();

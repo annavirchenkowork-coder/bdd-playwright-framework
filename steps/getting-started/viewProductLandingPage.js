@@ -2,29 +2,25 @@ import { Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { startApplicationPage } from "../../globalPagesSetup.js";
 import { qaData } from "../../utilities/qa-data-reader.js";
-import { LeftMainPage } from "../../pages/LeftMainPage.js";
-
-// prefer a single instance per scenario
-function left(ctx) {
-  if (!ctx._leftMain) ctx._leftMain = new LeftMainPage(ctx.page);
-  return ctx._leftMain;
-}
+import { BrowserUtility } from "../../utilities/BrowserUtility.js";
 
 /* @sep07-1: Secure checkout title */
 Then(
   'The "Cydeo Secure checkout" title should be visible on the left panel',
   async function () {
-    await expect(left(this).secureCheckout).toBeVisible();
+    await expect(BrowserUtility.getLeftMain(this).secureCheckout).toBeVisible();
   }
 );
 
 /* @sep07-2: Program name present and correct */
 Then("The Program name should be visible on the left panel", async function () {
-  await expect(left(this).programName).toBeVisible();
+  await expect(BrowserUtility.getLeftMain(this).programName).toBeVisible();
 });
 
 Then("The Program name should match the expected value", async function () {
-  const actual = (await left(this).programName.innerText()).trim();
+  const actual = (
+    await BrowserUtility.getLeftMain(this).programName.innerText()
+  ).trim();
   expect(actual).toBe(qaData.programName);
 });
 
@@ -32,20 +28,22 @@ Then("The Program name should match the expected value", async function () {
 Then(
   "The left footer should contain the items in order:",
   async function (dataTable) {
-    // expected list from the feature table
     const expected = dataTable
       .raw()
       .flat()
       .map((s) => s.trim());
 
-    // 1) logo -> represented as a visible image
     const actual = [];
-    if (await left(this).cydeoImageAtLeftWindow.isVisible()) {
+
+    if (
+      await BrowserUtility.getLeftMain(this).cydeoImageAtLeftWindow.isVisible()
+    ) {
       actual.push("CYDEO logo");
     }
 
-    // 2) links -> capture the visible anchor texts in order
-    const linkTexts = await left(this).footerElements.allInnerTexts();
+    const linkTexts = await BrowserUtility.getLeftMain(
+      this
+    ).footerElements.allInnerTexts();
 
     actual.push(...linkTexts.map((t) => t.trim().replace(/\s+/g, " ")));
 
