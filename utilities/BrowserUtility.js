@@ -187,6 +187,19 @@ export class BrowserUtility {
     throw new Error(`Unknown plan: ${planKey}`);
   }
 
+  /**
+   * Fills a Stripe iframe input field (card number, expiry, etc.)
+   * Clears the field first, types the new value, and ensures visibility.
+   *
+   * @param {import('playwright').Locator} locator - The Stripe input field locator
+   * @param {string} value - Value to type (e.g. card number)
+   */
+  static async fillStripeInput(locator, value) {
+    await expect(locator).toBeVisible();
+    await locator.fill(""); // clear any existing value
+    await locator.type(value); // let Stripe auto-format the digits
+  }
+
   /** Checks a checkbox and verifies it is checked. */
   static async check(locator) {
     await locator.check();
