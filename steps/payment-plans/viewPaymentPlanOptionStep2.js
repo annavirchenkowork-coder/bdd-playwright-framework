@@ -1,43 +1,23 @@
 import { Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { paymentPlanPage } from "../../globalPagesSetup.js";
-
-/* small helper: normalize plan label */
-const normPlan = (s) =>
-  s.toLowerCase().includes("install") ? "installments" : "upfront";
+import { BrowserUtility } from "../../utilities/BrowserUtility.js";
 
 /* ----- panel visible ----- */
 Then("The {string} plan panel should be visible", async function (plan) {
-  switch (normPlan(plan)) {
-    case "upfront":
-      await expect(paymentPlanPage.upfrontPaymentFrame).toBeVisible();
-      break;
-    case "installments":
-      await expect(paymentPlanPage.installmentsPaymentFrame).toBeVisible();
-      break;
-  }
+  const planKey = BrowserUtility.normalizePlan(plan);
+  const { frame } = BrowserUtility.planLocators(planKey, paymentPlanPage);
+  await expect(frame).toBeVisible();
 });
 
 /* ----- first row text (title line) ----- */
 Then(
   "The first row of the {string} plan should display {string}",
   async function (plan, expected) {
-    switch (normPlan(plan)) {
-      case "upfront": {
-        const txt = (
-          await paymentPlanPage.upfrontPaymentOption.innerText()
-        ).trim();
-        expect(txt).toBe(expected);
-        break;
-      }
-      case "installments": {
-        const txt = (
-          await paymentPlanPage.installmentsPaymentOption.innerText()
-        ).trim();
-        expect(txt).toBe(expected);
-        break;
-      }
-    }
+    const planKey = BrowserUtility.normalizePlan(plan);
+    const { option } = BrowserUtility.planLocators(planKey, paymentPlanPage);
+    const txt = (await option.innerText()).trim();
+    expect(txt).toBe(expected);
   }
 );
 
@@ -45,24 +25,10 @@ Then(
 Then(
   "The second row of the {string} plan should display {string}",
   async function (plan, expected) {
-    switch (normPlan(plan)) {
-      case "upfront": {
-        // discount-price node renders: "$400 pay once"
-        const txt = (
-          await paymentPlanPage.upfrontPaymentAmount.innerText()
-        ).trim();
-        expect(txt).toBe(expected);
-        break;
-      }
-      case "installments": {
-        // discount-price node renders: "$100 per month"
-        const txt = (
-          await paymentPlanPage.installmentsPaymentAmount.innerText()
-        ).trim();
-        expect(txt).toBe(expected);
-        break;
-      }
-    }
+    const planKey = BrowserUtility.normalizePlan(plan);
+    const { amount } = BrowserUtility.planLocators(planKey, paymentPlanPage);
+    const txt = (await amount.innerText()).trim();
+    expect(txt).toBe(expected);
   }
 );
 
@@ -70,11 +36,9 @@ Then(
 Then(
   "There should be exactly {int} {string} plan option",
   async function (count, plan) {
-    const which = normPlan(plan);
-    const actual =
-      which === "upfront"
-        ? await paymentPlanPage.upfrontPaymentOption.count()
-        : await paymentPlanPage.installmentsPaymentOption.count();
+    const planKey = BrowserUtility.normalizePlan(plan);
+    const { option } = BrowserUtility.planLocators(planKey, paymentPlanPage);
+    const actual = await option.count();
     expect(actual).toBe(count);
   }
 );
@@ -83,15 +47,10 @@ Then(
 Then(
   "The {string} plan should show a {string} control",
   async function (plan, controlText) {
-    const which = normPlan(plan);
-    const panel =
-      which === "upfront"
-        ? paymentPlanPage.upfrontPaymentFrame
-        : paymentPlanPage.installmentsPaymentFrame;
+    const planKey = BrowserUtility.normalizePlan(plan);
+    const { frame } = BrowserUtility.planLocators(planKey, paymentPlanPage);
 
-    // scope inside the specific plan panel to avoid strict-mode conflicts
-    const chip = panel.locator(".coupon-badge");
-
+    const chip = frame.locator(".coupon-badge");
     await expect(chip).toHaveCount(1);
     await expect(chip.first()).toBeVisible();
     await expect(chip.first()).toHaveText(new RegExp(controlText, "i"));
