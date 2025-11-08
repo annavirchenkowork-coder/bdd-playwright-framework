@@ -154,6 +154,39 @@ export class BrowserUtility {
     throw new Error(`Unknown plan: ${name}`);
   }
 
+  /**
+   * Normalizes a plan name and returns its lowercase key.
+   * "Installments" → "installments", everything else → "upfront".
+   * @param {string} name
+   * @returns {string}
+   */
+  static normalizePlan(name) {
+    return name.toLowerCase().includes("install") ? "installments" : "upfront";
+  }
+
+  /**
+   * Returns the primary locators for a payment plan type.
+   * @param {string} planKey - "upfront" or "installments"
+   * @param {object} paymentPlanPage
+   */
+  static planLocators(planKey, paymentPlanPage) {
+    if (planKey === "upfront") {
+      return {
+        frame: paymentPlanPage.upfrontPaymentFrame,
+        option: paymentPlanPage.upfrontPaymentOption,
+        amount: paymentPlanPage.upfrontPaymentAmount,
+      };
+    }
+    if (planKey === "installments") {
+      return {
+        frame: paymentPlanPage.installmentsPaymentFrame,
+        option: paymentPlanPage.installmentsPaymentOption,
+        amount: paymentPlanPage.installmentsPaymentAmount,
+      };
+    }
+    throw new Error(`Unknown plan: ${planKey}`);
+  }
+
   /** Checks a checkbox and verifies it is checked. */
   static async check(locator) {
     await locator.check();
