@@ -1,6 +1,205 @@
 import { expect } from "@playwright/test";
+import { LeftMainPage } from "../pages/LeftMainPage.js";
 
 export class BrowserUtility {
+  /** Return one LeftMainPage per scenario (per World)*/
+  static getLeftMain(ctx) {
+    if (!ctx._leftMain) {
+      ctx._leftMain = new LeftMainPage(ctx.page);
+    }
+    return ctx._leftMain;
+  }
+  /**
+   * Cleans text content by trimming and collapsing whitespace.
+   * @param {import('playwright').Locator} locator - Locator whose text to clean
+   * @returns {Promise<string>} - Cleaned text content
+   */
+  static async cleanText(locator) {
+    const raw = (await locator.textContent()) ?? "";
+    return raw
+      .replace(/\u00A0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  /**
+   * Converts a formatted money string like "$400" or "$1,200.50"
+   * into a numeric value.
+   *
+   * @param {string} text
+   * @returns {number}
+   */
+  static moneyToNumber(text) {
+    const n = Number(String(text).replace(/[^\d.]/g, ""));
+    if (Number.isNaN(n)) {
+      throw new Error(`Cannot parse money from: ${text}`);
+    }
+    return n;
+  }
+
+  /**
+   * Returns native validity when available, otherwise falls back
+   * to common Angular / Mat markers on the element or its field container.
+   *
+   * @param {import('playwright').Locator} locator
+   * @returns {Promise<boolean>}
+   */
+  static async controlIsValid(locator) {
+    return await locator.evaluate((el) => {
+      if (typeof el.checkValidity === "function") return el.checkValidity();
+
+      const field =
+        el.closest(".mat-mdc-form-field") || el.closest("mat-form-field");
+      const take = (n) => n === true || n === "true";
+
+      if (el.hasAttribute("aria-invalid"))
+        return !take(el.getAttribute("aria-invalid"));
+      if (field && field.hasAttribute("aria-invalid"))
+        return !take(field.getAttribute("aria-invalid"));
+
+      const cl = (node) =>
+        (node && node.classList) || { contains: () => false };
+
+      if (cl(el).contains("ng-invalid") || cl(field).contains("ng-invalid"))
+        return false;
+      if (cl(el).contains("ng-valid") || cl(field).contains("ng-valid"))
+        return true;
+
+      return true; // safest default
+    });
+  }
+
+  /**
+   * Angular form-level validity helper.
+   *
+   * @param {import('playwright').Page} page
+   * @returns {Promise<boolean>}
+   */
+  static async ngFormValid(page) {
+    const formEl = await page.$("form");
+    if (!formEl) return true;
+    return await formEl.evaluate((f) => {
+      if (f.hasAttribute("aria-invalid")) {
+        const v = f.getAttribute("aria-invalid");
+        if (v === "true") return false;
+        if (v === "false") return true;
+      }
+      const cl = f.classList || { contains: () => false };
+      if (cl.contains("ng-invalid")) return false;
+      if (cl.contains("ng-valid")) return true;
+      return f.checkValidity ? f.checkValidity() : true;
+    });
+  }
+
+  /**
+   * Type value into a field, blur it, and wait briefly for validators.
+   *
+   * @param {import('playwright').Locator} locator
+   * @param {string} value
+   */
+  static async typeAndBlur(locator, value) {
+    await locator.fill("");
+    if (value) await locator.type(value);
+    await locator.blur();
+    await locator.page().waitForTimeout(120);
+  }
+
+  /**
+   * Poll-based assertion for control validity.
+   *
+   * @param {import('playwright').Locator} locator
+   * @param {boolean} expected
+   */
+  static async expectControlValidity(locator, expected) {
+    await expect
+      .poll(async () => await BrowserUtility.controlIsValid(locator), {
+        timeout: 4000,
+        intervals: [120, 200, 300, 500, 900, 1200],
+      })
+      .toBe(expected);
+  }
+
+  /**
+   * Checks if an input element has the "required" attribute.
+   *
+   * @param {import('playwright').Locator} locator
+   * @returns {Promise<boolean>}
+   */
+  static async isRequired(locator) {
+    return await locator.evaluate((el) => !!el.required);
+  }
+
+  /**
+   * Returns header and summary locators for a payment plan name.
+   * Handles "upfront" and "installments" cases.
+   *
+   * @param {string} name - The plan name (case-insensitive)
+   * @param {object} paymentPlanPage - The payment plan page instance
+   * @returns {{header: import('playwright').Locator, summaryProbe: import('playwright').Locator}}
+   */
+  static panelFor(name, paymentPlanPage) {
+    const k = name.toLowerCase();
+    if (k.includes("upfront")) {
+      return {
+        header: paymentPlanPage.upfrontPaymentFrame,
+        summaryProbe: paymentPlanPage.basePriceAmountUnderUpfront,
+      };
+    }
+    if (k.includes("installments")) {
+      return {
+        header: paymentPlanPage.installmentsPaymentFrame,
+        summaryProbe: paymentPlanPage.basePriceAmountUnderInstallments,
+      };
+    }
+    throw new Error(`Unknown plan: ${name}`);
+  }
+
+  /**
+   * Normalizes a plan name and returns its lowercase key.
+   * "Installments" → "installments", everything else → "upfront".
+   * @param {string} name
+   * @returns {string}
+   */
+  static normalizePlan(name) {
+    return name.toLowerCase().includes("install") ? "installments" : "upfront";
+  }
+
+  /**
+   * Returns the primary locators for a payment plan type.
+   * @param {string} planKey - "upfront" or "installments"
+   * @param {object} paymentPlanPage
+   */
+  static planLocators(planKey, paymentPlanPage) {
+    if (planKey === "upfront") {
+      return {
+        frame: paymentPlanPage.upfrontPaymentFrame,
+        option: paymentPlanPage.upfrontPaymentOption,
+        amount: paymentPlanPage.upfrontPaymentAmount,
+      };
+    }
+    if (planKey === "installments") {
+      return {
+        frame: paymentPlanPage.installmentsPaymentFrame,
+        option: paymentPlanPage.installmentsPaymentOption,
+        amount: paymentPlanPage.installmentsPaymentAmount,
+      };
+    }
+    throw new Error(`Unknown plan: ${planKey}`);
+  }
+
+  /**
+   * Fills a Stripe iframe input field (card number, expiry, etc.)
+   * Clears the field first, types the new value, and ensures visibility.
+   *
+   * @param {import('playwright').Locator} locator - The Stripe input field locator
+   * @param {string} value - Value to type (e.g. card number)
+   */
+  static async fillStripeInput(locator, value) {
+    await expect(locator).toBeVisible();
+    await locator.fill(""); // clear any existing value
+    await locator.type(value); // let Stripe auto-format the digits
+  }
+
   /** Checks a checkbox and verifies it is checked. */
   static async check(locator) {
     await locator.check();

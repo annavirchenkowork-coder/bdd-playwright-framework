@@ -1,21 +1,17 @@
 import { When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { reviewPaymentPage } from "../../globalPagesSetup.js";
+import { BrowserUtility } from "../../utilities/BrowserUtility.js";
 
-// tiny helper to interact with Stripe's iframe input
-async function fillStripeInput(locator, value) {
-  await expect(locator).toBeVisible();
-  await locator.fill("");
-  await locator.type(value); // keep typing to allow Stripe formatting
-}
-
+/* === Typing invalid / short CVC === */
 When(
   "User types {string} into the Security Code field",
   async function (value) {
-    await fillStripeInput(reviewPaymentPage.cvcInput, value);
+    await BrowserUtility.fillStripeInput(reviewPaymentPage.cvcInput, value);
   }
 );
 
+/* === Assertions on CVC error === */
 Then("The Security Code field error should be visible", async function () {
   await expect(reviewPaymentPage.cardCVCErrorMessage).toBeVisible();
 });

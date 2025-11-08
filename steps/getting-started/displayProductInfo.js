@@ -2,15 +2,9 @@ import { Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { startApplicationPage } from "../../globalPagesSetup.js";
 import { qaData } from "../../utilities/qa-data-reader.js";
+import { BrowserUtility } from "../../utilities/BrowserUtility.js";
 
-// Small helper to pull a numeric value from a $-formatted string like "$400"
-function moneyToNumber(text) {
-  const n = Number(String(text).replace(/[^\d.]/g, ""));
-  if (Number.isNaN(n)) throw new Error(`Cannot parse money from: ${text}`);
-  return n;
-}
-
-// AC1
+/* ========== AC1: Product name visible on info card ========== */
 Then(
   "The product name should be visible on the information card",
   async function () {
@@ -18,7 +12,7 @@ Then(
   }
 );
 
-// AC2
+/* ========== AC2: Left header program name matches card title ========== */
 Then(
   "The product name on the left header should match the information card title",
   async function () {
@@ -28,7 +22,7 @@ Then(
   }
 );
 
-// AC3
+/* ========== AC3: Discounted price & original price behavior ========== */
 Then("The discounted price should be shown", async function () {
   await expect(startApplicationPage.discountedPrice).toBeVisible();
 });
@@ -49,6 +43,7 @@ Then(
     const oneTime = qaData.prices.find(
       (p) => p.active && p.type === "one-time"
     );
+
     const expectedOriginal = oneTime.baseAmount;
     const expectedDiscounted = oneTime.upfrontDiscount
       ? oneTime.baseAmount - oneTime.upfrontDiscountAmount
@@ -58,15 +53,15 @@ Then(
     const discountedText =
       await startApplicationPage.discountedPrice.textContent();
 
-    const original = moneyToNumber(originalText);
-    const discounted = moneyToNumber(discountedText);
+    const original = BrowserUtility.moneyToNumber(originalText);
+    const discounted = BrowserUtility.moneyToNumber(discountedText);
 
     expect(original).toBe(expectedOriginal);
     expect(discounted).toBe(expectedDiscounted);
   }
 );
 
-// AC4
+/* ========== AC4: Flexible payments availability text ========== */
 Then(
   "The flexible payments plan availability text should be visible",
   async function () {
@@ -79,12 +74,11 @@ Then(
   }
 );
 
-// AC5
+/* ========== AC5: Program start date matches test data ========== */
 Then(
   "The program start date should be visible and match test data",
   async function () {
     await expect(startApplicationPage.programStartDate).toBeVisible();
-    // Escape any special regex chars in the date string
     const dateEscaped = qaData.startDate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     await expect(startApplicationPage.programStartDate).toHaveText(
       new RegExp(dateEscaped, "i")
@@ -92,7 +86,7 @@ Then(
   }
 );
 
-// AC6
+/* ========== AC6: Refund policy text visible & correct ========== */
 Then("The refund policy text should be visible", async function () {
   await expect(startApplicationPage.refundEndDate).toBeVisible();
 });
