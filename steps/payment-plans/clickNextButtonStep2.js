@@ -4,11 +4,7 @@ import {
   paymentPlanPage,
   startApplicationPage,
 } from "../../globalPagesSetup.js";
-
-/* ---- tiny helper to give CSS/DOM bindings a beat to settle after click/expand ---- */
-async function microSettle(page, ms = 150) {
-  await page.waitForTimeout(ms);
-}
+import { microSettle } from "../../utilities/BrowserUtility.js";
 
 /* AC1: Next becomes enabled after selecting a plan */
 Then(
@@ -21,7 +17,7 @@ Then(
 
 When("User selects upfront payment plan", async function () {
   await paymentPlanPage.selectPaymentPlan("upfront");
-  await microSettle(this.page); // allow expand/DOM class updates
+  await microSettle(this.page); // allow expand/DOM updates
 });
 
 Then("The next button on step two should be enabled", async function () {
