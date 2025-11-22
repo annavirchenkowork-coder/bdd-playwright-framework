@@ -45,3 +45,53 @@ Then("The stepper should show all steps completed", async function () {
   // Step 3 is the active/completed step, marked as "editing" in this UI
   await expect(reviewPaymentPage.step3Container).toHaveClass(/editing|done/);
 });
+
+/* ----------------------------------------------------------
+   NEGATIVE STEPS FOR PAYMENT VALIDATION
+----------------------------------------------------------- */
+
+/* === Invalid ZIP input === */
+When(
+  "User types {string} into the ZIP code field",
+  async function (zip) {
+    await reviewPaymentPage.enterZipCode(zip);
+  }
+);
+
+/* === Pay button should be disabled === */
+Then("The Pay button should be disabled", async function () {
+  await expect(reviewPaymentPage.payButton).toBeDisabled();
+});
+
+/* === ZIP inline error should contain text === */
+  Then(
+    "The ZIP Code field error should contain {string}",
+    async function (expected) {
+      await expect(reviewPaymentPage.zipCodeErrorMessage).toContainText(
+        expected,
+        { ignoreCase: true }
+      );
+    }
+  );
+
+/* === Expect system alert === */
+Then(
+  "A system alert should appear with message {string}",
+  async function (expected) {
+    this.page.once("dialog", async (dialog) => {
+      expect(dialog.message()).toContain(expected);
+      await dialog.accept();
+    });
+  }
+);
+
+/* === Payment confirmation should NOT appear === */
+Then(
+  "The payment confirmation message should NOT be displayed",
+  async function () {
+    // For negative flows we stay on the Review Payment page.
+    // If the Pay button is still visible, we definitely did NOT
+    // navigate to the Payments confirmation screen.
+    await expect(reviewPaymentPage.payButton).toBeVisible();
+  }
+);

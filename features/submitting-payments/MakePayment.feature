@@ -18,14 +18,8 @@ Feature: Make a payment with a valid card
         Then The payment confirmation message should be displayed
         And The stepper should show all steps completed
 
-@sep23-negative
-Feature: Payment negative scenarios
-
-    As a user, I want to be informed when payment cannot be processed
-    so that I can fix my card info before trying again.
-
-    Background:
-        Given User proceeds to the Review Payment page
+    #As a user, I want to be informed when payment cannot be processed
+    #so that I can fix my card info before trying again.
 
     @sep23-2
     Scenario: Pay button stays disabled when Terms & Conditions are not accepted
